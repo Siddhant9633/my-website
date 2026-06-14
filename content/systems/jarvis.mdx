@@ -1,0 +1,146 @@
+---
+title: Jarvis
+slug: jarvis
+status: ACTIVE
+summary: A local-first, always-on voice assistant that runs on a single Mac, costs nothing to operate, and retains memory and knowledge across every session.
+since: 2026
+domain: infrastructure
+featured: true
+---
+
+# Jarvis
+
+A voice assistant that runs at login, responds to a global hotkey, and operates at zero recurring cost. It does not restart from scratch each session — it knows what you told it last week.
+
+## The Thesis
+
+> The hard problem in personal AI is not capability. It is persistence.
+
+Most assistants are stateless. They have no memory of prior sessions, no access to your notes, and no way to operate when the network is gone. They treat cloud connectivity as a hard dependency.
+
+Jarvis inverts that assumption. The local machine is the primary compute environment. Cloud inference is an accelerator — fast when available, not required when it is not.
+
+---
+
+## The Problem
+
+Every session with a general-purpose assistant starts cold. The model has no knowledge of your current projects, preferences, or the conversation from yesterday. You re-explain context every time.
+
+A second problem: tool outputs that are already correct get passed back through the model for synthesis. The model rephrases a correct calendar result, introduces ambiguity, and the answer is worse than the raw tool output would have been.
+
+A third problem: Whisper — the best available local speech recognition model — consistently mishears specific Indian-English pronunciations. A corrections layer between transcription and the agent is not a polish step. It is load-bearing.
+
+Jarvis was built to address all three: persistent context, direct tool output routing, and a reliable transcription pipeline.
+
+---
+
+## System Overview
+
+Jarvis runs as a launchd daemon on macOS, starting at login. A global hotkey (⌘⇧J) activates the listening session. Speaking the wake word triggers Whisper transcription. The agent routes the command through a four-tier model chain, executes the appropriate tool, and responds by voice.
+
+```
+launchd (starts at login)
+  └── jarvis_hotkey.py
+        ├── vault_watcher        background thread — auto-indexes new files
+        └── voice_engine.run_listen_loop
+              ├── SpeechRecognition    wake word detection ("jarvis")
+              ├── Whisper small.en     command transcription, fully local
+              ├── corrections layer    post-transcription Indian-English fixes
+              ├── agent.handle()       model routing + tool execution
+              └── macOS say            spoken response
+```
+
+---
+
+## Model Hierarchy
+
+Four tiers, tried in sequence. First success wins.
+
+| Tier | Model | Role |
+|---|---|---|
+| 1 | NVIDIA NIM Llama-3.3-70B | Primary — accurate tool routing |
+| 2 | NVIDIA NIM Llama-3.1-8B | Fast fallback if the 70B stalls |
+| 3 | Gemini 2.0 Flash | Cloud fallback — Google AI free tier, 1,500 req/day |
+| 4 | Ollama qwen2.5:3b | Local model — fully offline, no network required |
+
+The same chain runs twice per tool call: once to decide which tool to invoke, and once to synthesize the final response. If all four tiers fail, the system returns an explicit error rather than guessing.
+
+Total recurring cost: ₹0.
+
+---
+
+## Memory Architecture
+
+Memory operates in two independent layers.
+
+**Explicit memory** is a plain text file appended with a date on every `remember` command. On each session start, the full contents of that file are injected into the system prompt verbatim. Every fact the user has saved is available to the model as first-class context — no retrieval step, no retrieval failure.
+
+**Automatic extraction** runs in a background thread after every conversation turn. A local `qwen2.5:3b` call checks whether the user's input contains a trigger phrase — project names, preferences, upcoming deadlines. If it does, one short fact is extracted and appended to the memory file silently, without blocking the spoken response.
+
+The choice of plain text over a vector store for personal facts is deliberate. Short exact-match facts like "I have an exam on Friday" are poorly served by semantic retrieval. The full memory file is small enough to inject completely, which is faster, simpler, and always complete.
+
+---
+
+## Knowledge Vault
+
+A separate subsystem manages a personal knowledge base stored locally.
+
+A file watcher monitors an inbox and a raw sources directory. When a new PDF, Markdown, or text file is dropped in, a background worker processes it automatically:
+
+1. A local `qwen2.5:14b` call extracts a one-line summary and up to ten key concepts.
+2. The metadata is persisted to a JSON index — currently 56 entries.
+
+In parallel, all Markdown files are chunked into 800-character overlapping windows and embedded locally using `nomic-embed-text` via Ollama. The vectors are stored in a persisted ChromaDB instance. The `ask_notes` tool queries this store at runtime and returns the four most relevant chunks as context.
+
+The watcher starts as a daemon thread at boot. Drop a document into the inbox folder and it is indexed and queryable in seconds, with no manual re-indexing step.
+
+---
+
+## Tool System
+
+36 tools are registered across ten domains.
+
+- **Calendar** — read today's schedule, create, find, and delete events, plan tomorrow in bulk
+- **Gmail** — count unread, read summaries, search across two accounts
+- **System** — volume, mute, brightness, screen lock, app launch, battery, current time
+- **Information** — weather, web search, date arithmetic
+- **Spotify** — play, pause, skip, previous track, now playing, search by name
+- **Memory** — remember, forget, read all
+- **Knowledge** — index vault, query vault
+- **Briefing** — morning briefing, smart greeting, research-and-teach
+- **Communication** — WhatsApp messaging
+- **Timers** — set, list active
+
+The `research_and_teach` tool runs three web searches on different query angles, synthesizes findings into a structured lesson using a local model, saves the lesson to the knowledge vault as a dated Markdown file, and returns a spoken summary.
+
+---
+
+## Key Engineering Decisions
+
+**Direct tool output routing.**
+
+A defined set of tools — weather, calendar, web search, email, notes — returns its output directly to the voice layer without a synthesis pass. The rationale is precise: a correct answer that passes through a second model call can be rephrased into an incorrect one. The model cannot second-guess a tool that has already queried the real system clock or the live calendar API.
+
+A randomised conversational closer is appended to direct outputs 70% of the time, which keeps the interaction natural without making it formulaic.
+
+**Post-transcription corrections dictionary.**
+
+Whisper systematically mishears specific Indian-English phonemes. A string replacement table runs between Whisper's output and the agent on every command. The alternative — prompting the model to compensate for bad transcription — does not work reliably because the error is upstream of the model.
+
+**Flat memory over retrieval for personal facts.**
+
+Personal facts are injected into every system prompt as plain text. Semantic retrieval is the right tool for a 56-document knowledge base. It is the wrong tool for short personal facts where embedding overhead adds latency and retrieval failure is a real outcome.
+
+**Conversation mode.**
+
+After each spoken reply, the system listens for a follow-up for 20 seconds without requiring the wake word again. Multi-step queries — "what's the weather, and add a reminder for the afternoon" — flow naturally. The microphone is off by default until the hotkey is pressed.
+
+---
+
+## Current Status
+
+Jarvis is a working production system running on a single machine.
+
+It starts at login, responds to the global hotkey, executes real tools against live system data, and maintains persistent memory and a 56-source knowledge vault across sessions.
+
+The system is deliberately scoped to one user on one machine. There is no multi-device sync, no remote access, and no multi-user support. These are not gaps — they are constraints that keep the system simple, private, and free to run.
