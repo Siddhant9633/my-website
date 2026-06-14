@@ -2,15 +2,112 @@
 title: Multi-Agent Handoffs
 slug: multi-agent-handoffs
 status: HYPOTHESIS
-summary: Exploring whether agent reliability is determined more by handoffs than reasoning quality.
+summary: Exploring whether agent reliability is determined more by the quality of handoffs than by the capability of individual agents.
 domain: agents
 featured: true
+updatedAt: 2026-06-15
 ---
 
 # Multi-Agent Handoffs
 
-This experiment investigates a simple idea:
+Most work on multi-agent systems focuses on making individual agents smarter. This investigation starts from a different premise.
+
+## The Hypothesis
 
 > Most failures in multi-agent systems happen between agents rather than inside them.
 
-The goal is to understand whether explicit state transitions improve reliability.
+A planning agent that produces a correct plan, a retrieval agent that finds relevant documents, and a synthesis agent that writes fluently can still produce an unreliable system — if the state passed between them is lossy, ambiguous, or inconsistently interpreted.
+
+The hypothesis is that coordination is the hard problem, not capability. If this is true, investing in better models before fixing the handoff protocol is the wrong order of operations.
+
+---
+
+## Why This Matters
+
+The practical implication is significant. If individual agent quality is the bottleneck, the path to reliability is better models. If handoff quality is the bottleneck, the path is better schemas, explicit state transitions, and deterministic orchestration.
+
+These lead to completely different engineering choices.
+
+The current trend is to treat orchestration as a thin wrapper around capable agents — a few prompt instructions and a loop. If handoffs are where failures concentrate, that architecture is systematically fragile regardless of how good the underlying models become.
+
+---
+
+## Observed Failure Modes
+
+These are patterns I have observed or reproduced repeatedly, not statistically validated results.
+
+**Context loss at system prompt boundaries.**
+Each agent in a pipeline receives a system prompt and a user turn. The richness of what the previous agent produced — its reasoning, its uncertainty, the evidence it weighed — rarely survives the transition intact. What arrives is a summary, or a final answer, not the process that produced it. Downstream agents make decisions on compressed, lossy representations of upstream work.
+
+**State drift from re-querying.**
+When a retrieval agent runs independently of the planner's evidence assumptions, it may find different documents. The planner designed a synthesis strategy around one set of retrieved facts. The retriever returns a different set. The synthesis agent reconciles them, often silently, producing an output that satisfies neither the plan nor the evidence.
+
+**Termination ambiguity.**
+Multi-agent loops often have no explicit termination criterion. Individual agents do not know when the task is complete; they know only their local context. The result is either premature exit — a technically valid output that misses the point — or loops that continue past useful work. Neither failure mode is loud. Both look like normal outputs.
+
+**Silent degradation.**
+This is the failure mode I find most concerning. The system does not error. It produces fluent, confident output that is subtly wrong in ways that require domain knowledge to catch. The confidence of the final synthesis masks the information loss that occurred upstream.
+
+---
+
+## What I Am Investigating
+
+Three questions currently have my attention.
+
+**Does explicit typed state reduce handoff failures?**
+If agents communicate through a typed shared schema — where every field has a defined meaning, every write is validated, and reads are structured rather than free-form — does that measurably change the failure rate? SPECTER is a proposed architecture designed to test this hypothesis. The blackboard architecture would force all agent communication through a single typed ledger. The hypothesis is that this could reduce the ambiguity that causes silent degradation.
+
+**Does the coordinator model matter independently of agent capability?**
+Replacing an LLM-based orchestrator with deterministic routing code changes which component is responsible for sequencing, error handling, and termination. The question is whether this matters, and how much. A deterministic coordinator cannot improve a bad agent output, but it also cannot misroute based on a misread of that output.
+
+**Can termination criteria be declared before retrieval begins?**
+This is one of SPECTER's constraints — the planner declares what "done" looks like before the retrieval loop starts. The intuition is that deciding termination criteria under the influence of partial results introduces a different kind of bias than deciding them upfront. I have not validated this, but the logic holds: if the exit condition is defined by the data retrieved, the system may converge on whatever the retriever returned rather than on what was actually asked.
+
+---
+
+## Early Findings
+
+I am cautious about calling these findings. They are consistent observations that have not been controlled for.
+
+**Failures are deterministic, not random.**
+The same query, in the same system configuration, tends to fail in the same way. This is useful: it suggests that handoff failures are structural, not probabilistic. The system is not occasionally unlucky — it has a reproducible flaw in how state is passed. This makes them diagnosable, in principle.
+
+**Tool output richness does not survive handoffs.**
+When an agent calls a tool and receives a rich structured result, what gets passed to the next agent is typically a prose summary of that result, not the structure itself. Information is lost at the summarisation step. Later agents make decisions on the summary rather than the original data.
+
+**More capable models produce more fluent failures.**
+A weaker model that fails tends to produce an obviously wrong or confused output. A stronger model that fails tends to produce a confident, well-written output that is wrong in a non-obvious way. This makes failures harder to detect and debug. It also means that upgrading the models in a poorly designed pipeline may make the system harder to maintain, not easier.
+
+---
+
+## What Surprised Me
+
+I expected handoff failures to be primarily about information loss — the downstream agent not knowing enough. Some failures are exactly that. But more often the failure is about interpretation divergence: the downstream agent knows enough, but interprets the shared state differently than the upstream agent intended.
+
+Schema ambiguity is harder to fix than information loss. More tokens do not resolve it.
+
+I also did not expect termination to be as central as it appears to be. The question of when an agent loop should stop is treated as obvious in most pipeline designs. In practice it may be the design decision with the highest leverage.
+
+---
+
+## Open Questions
+
+These are unresolved. Some may not be answerable with the approach I am currently taking.
+
+- What is the minimum state schema that preserves handoff fidelity without becoming too rigid to generalise?
+- Is retrieval mismatch — the planner and retriever working from different evidence — an inherent property of sequential pipelines, or is it addressable through pre-fetching and locking?
+- Does declaring termination criteria upfront meaningfully change the distribution of outputs, or does the effect only appear in edge cases?
+- Is silent degradation diagnosable without ground-truth labels? If the system produces fluent but wrong output, what signal indicates a handoff failure rather than a reasoning failure?
+- Are there classes of tasks where LLM-based orchestration is genuinely better than deterministic routing, and if so, what properties define them?
+
+---
+
+## Current Status
+
+This is a running investigation. I do not have controlled experimental results.
+
+SPECTER is the architectural direction that grew from this investigation — a proposed system that would use typed shared state, a deterministic coordinator, and predefined termination criteria before retrieval begins. Whether those design choices reduce handoff failures remains an open question and is one of the motivations behind SPECTER.
+
+The observations here are real. The hypotheses are plausible. The conclusions are not yet earned.
+
+*Last updated · 2026-06-15*
