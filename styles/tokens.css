@@ -1,0 +1,138 @@
+/* ─── Autonomous Systems Lab — Design Tokens ─────────────────────────────── */
+/* Dark-first: :root defines the dark default. .light overrides to light mode. */
+
+:root {
+  /* ── Surfaces ──────────────────────────────────────────────────────────── */
+  --surface-0: #0A0A0C;   /* deepest — behind code, behind canvas */
+  --surface-1: #0F1014;   /* page background */
+  --surface-2: #15161B;   /* cards */
+  --surface-3: #1C1D23;   /* hover, modals */
+
+  /* ── Borders ───────────────────────────────────────────────────────────── */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  /* ── Text ──────────────────────────────────────────────────────────────── */
+  --text-primary:   #ECECEE;
+  --text-secondary: #A1A1AA;
+  --text-tertiary:  #6B6B73;
+
+  /* ── Signal (the only chromatic accent) ────────────────────────────────── */
+  --signal:      #7AB8FF;
+  --signal-dim:  rgba(122, 184, 255, 0.20);
+  --signal-glow: rgba(122, 184, 255, 0.45);
+
+  /* ── Editorial accents ─────────────────────────────────────────────────── */
+  --warm:    #E8C8A0;   /* serif editorial moments only */
+  --anomaly: #F25555;   /* errors, deprecation — never decoration */
+
+  /* ── Radii ─────────────────────────────────────────────────────────────── */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   16px;
+  --radius-full: 9999px;
+
+  /* ── Spacing scale (multiples of 4) ────────────────────────────────────── */
+  --space-px:  1px;
+  --space-0-5: 2px;
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-14:  56px;
+  --space-20:  80px;
+  --space-30:  120px;
+  --space-50:  200px;
+
+  /* ── Layout ────────────────────────────────────────────────────────────── */
+  --content-max:   1320px;
+  --editorial-max: 680px;
+
+  /* ── Typography scale ──────────────────────────────────────────────────── */
+  /* display-xl: 96/100, -2.5% tracking */
+  --text-display-xl-size:     6rem;       /* 96px */
+  --text-display-xl-lh:       6.25rem;    /* 100px */
+  --text-display-xl-tracking: -0.025em;
+
+  /* display-lg: 72/76, -2% tracking */
+  --text-display-lg-size:     4.5rem;     /* 72px */
+  --text-display-lg-lh:       4.75rem;    /* 76px */
+  --text-display-lg-tracking: -0.02em;
+
+  /* display-md: 56/60, -2% tracking */
+  --text-display-md-size:     3.5rem;     /* 56px */
+  --text-display-md-lh:       3.75rem;    /* 60px */
+  --text-display-md-tracking: -0.02em;
+
+  /* headline-lg: 40/46, -1% tracking */
+  --text-headline-lg-size:     2.5rem;    /* 40px */
+  --text-headline-lg-lh:       2.875rem;  /* 46px */
+  --text-headline-lg-tracking: -0.01em;
+
+  /* headline-md: 28/34, -0.5% tracking */
+  --text-headline-md-size:     1.75rem;   /* 28px */
+  --text-headline-md-lh:       2.125rem;  /* 34px */
+  --text-headline-md-tracking: -0.005em;
+
+  /* headline-sm: 20/28, 0 tracking */
+  --text-headline-sm-size:     1.25rem;   /* 20px */
+  --text-headline-sm-lh:       1.75rem;   /* 28px */
+  --text-headline-sm-tracking: 0em;
+
+  /* body-lg: 18/30, 0 tracking */
+  --text-body-lg-size:     1.125rem;  /* 18px */
+  --text-body-lg-lh:       1.875rem;  /* 30px */
+  --text-body-lg-tracking: 0em;
+
+  /* body: 16/26, 0 tracking */
+  --text-body-size:     1rem;         /* 16px */
+  --text-body-lh:       1.625rem;     /* 26px */
+  --text-body-tracking: 0em;
+
+  /* body-sm: 14/22, 0 tracking */
+  --text-body-sm-size:     0.875rem;  /* 14px */
+  --text-body-sm-lh:       1.375rem;  /* 22px */
+  --text-body-sm-tracking: 0em;
+
+  /* mono-md: 14/20, 0 tracking */
+  --text-mono-md-size:     0.875rem;  /* 14px */
+  --text-mono-md-lh:       1.25rem;   /* 20px */
+  --text-mono-md-tracking: 0em;
+
+  /* mono-sm: 12/18, +1% tracking */
+  --text-mono-sm-size:     0.75rem;   /* 12px */
+  --text-mono-sm-lh:       1.125rem;  /* 18px */
+  --text-mono-sm-tracking: 0.01em;
+
+  /* overline: 11/14, +12% tracking, uppercase */
+  --text-overline-size:     0.6875rem; /* 11px */
+  --text-overline-lh:       0.875rem;  /* 14px */
+  --text-overline-tracking: 0.12em;
+}
+
+/* ── Light mode overrides ─────────────────────────────────────────────────── */
+/* Applied via .light class on <html>; toggled by ThemeProvider later.        */
+.light {
+  --surface-0: #F0F0F2;
+  --surface-1: #F9F9FB;
+  --surface-2: #FFFFFF;
+  --surface-3: #ECECEF;
+
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.12);
+
+  --text-primary:   #111113;
+  --text-secondary: #52525B;
+  --text-tertiary:  #A1A1AA;
+
+  --signal:      #2A6CDB;
+  --signal-dim:  rgba(42, 108, 219, 0.15);
+  --signal-glow: rgba(42, 108, 219, 0.35);
+
+  --warm:    #8C5A1A;
+  --anomaly: #C9251F;
+}

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Vercel
+.vercel/
+
+# PNPM
+.pnpm-store/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Cursor
+.cursor/
+
+# Claude
+.claude/

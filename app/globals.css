@@ -1,0 +1,187 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "../styles/tokens.css";
+
+/* ─── Dark variant: applies when any ancestor has .dark class ─────────────── */
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Tailwind theme bridge ─────────────────────────────────────────────────
+   Exposes design tokens as Tailwind utilities (bg-surface-1, text-signal…).
+   "inline" means values reference existing CSS vars — no duplicate output.   */
+@theme inline {
+  /* Font families */
+  --font-sans:  var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono:  var(--font-geist-mono), ui-monospace, monospace;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
+
+  /* Surfaces → bg-surface-{0-3} */
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  /* Borders → border-subtle / border-strong */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+
+  /* Text → text-primary / text-secondary / text-tertiary */
+  --color-text-primary:   var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary:  var(--text-tertiary);
+
+  /* Signal → bg-signal, text-signal, etc. */
+  --color-signal:      var(--signal);
+  --color-signal-dim:  var(--signal-dim);
+  --color-signal-glow: var(--signal-glow);
+
+  /* Editorial */
+  --color-warm:    var(--warm);
+  --color-anomaly: var(--anomaly);
+
+  /* Radii — overrides Tailwind defaults to match design spec */
+  --radius-sm:   var(--radius-sm);
+  --radius-md:   var(--radius-md);
+  --radius-lg:   var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  /* shadcn semantic aliases */
+  --color-background:         var(--background);
+  --color-foreground:         var(--foreground);
+  --color-card:               var(--card);
+  --color-card-foreground:    var(--card-foreground);
+  --color-popover:            var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary:            var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary:          var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:              var(--muted);
+  --color-muted-foreground:   var(--muted-foreground);
+  --color-accent:             var(--accent);
+  --color-accent-foreground:  var(--accent-foreground);
+  --color-destructive:        var(--destructive);
+  --color-border:             var(--border);
+  --color-input:              var(--input);
+  --color-ring:               var(--ring);
+  --color-sidebar-ring:             var(--sidebar-ring);
+  --color-sidebar-border:           var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent:           var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary:          var(--sidebar-primary);
+  --color-sidebar-foreground:       var(--sidebar-foreground);
+  --color-sidebar:                  var(--sidebar);
+}
+
+/* ─── shadcn tokens: light mode ─────────────────────────────────────────────
+   Default :root stays light for shadcn compatibility. Dark is applied via
+   the .dark class on <html>, which is set by default in layout.tsx.          */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* ─── shadcn tokens: dark mode — remapped to lab design system ──────────────
+   These override shadcn's generic dark tokens with our exact design values.   */
+.dark {
+  --background: var(--surface-1);            /* #0F1014 */
+  --foreground: var(--text-primary);         /* #ECECEE */
+  --card: var(--surface-2);                  /* #15161B */
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface-3);               /* #1C1D23 */
+  --popover-foreground: var(--text-primary);
+  --primary: var(--signal);                  /* #7AB8FF */
+  --primary-foreground: var(--surface-1);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface-3);
+  --muted-foreground: var(--text-secondary); /* #A1A1AA */
+  --accent: var(--signal-dim);
+  --accent-foreground: var(--signal);
+  --destructive: var(--anomaly);             /* #F25555 */
+  --border: var(--border-subtle);            /* rgba(255,255,255,0.06) */
+  --input: var(--border-subtle);
+  --ring: var(--signal);
+  --sidebar: var(--surface-2);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--signal);
+  --sidebar-primary-foreground: var(--surface-1);
+  --sidebar-accent: var(--surface-3);
+  --sidebar-accent-foreground: var(--text-secondary);
+  --sidebar-border: var(--border-subtle);
+  --sidebar-ring: var(--signal);
+}
+
+/* ─── Base styles ────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply font-sans;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-size: var(--text-body-size);
+    line-height: var(--text-body-lh);
+    letter-spacing: var(--text-body-tracking);
+  }
+
+  /* Editorial measure constraint — body text never exceeds 74ch */
+  p, li, blockquote {
+    max-width: 74ch;
+  }
+
+  /* Code inherits mono font */
+  code, kbd, pre, samp {
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-md-size);
+    line-height: var(--text-mono-md-lh);
+  }
+
+  /* Borders are always 1px — no 2px+ borders */
+  * {
+    border-width: 1px;
+  }
+
+  /* Reduced motion: respect system preference */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
