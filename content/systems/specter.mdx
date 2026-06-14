@@ -1,0 +1,139 @@
+---
+title: SPECTER
+slug: specter
+status: ACTIVE
+summary: A deterministic multi-agent research system built around typed state, blackboard orchestration, and pre-declared termination.
+since: 2025-09
+domain: agents
+featured: true
+---
+
+# SPECTER
+
+A multi-agent research system organized around a shared ledger, deterministic routing, and pre-declared termination.
+
+## The Thesis
+
+SPECTER exists to test a simple claim:
+
+> The hard engineering in multi-agent systems is not the agent. It is the handoff.
+
+Most multi-agent failures are orchestration failures disguised as reasoning failures. SPECTER explores whether reliability comes from deterministic coordination, typed state, and explicit termination rather than increasingly complex prompts.
+
+The system decomposes a research question into a plan, retrieves evidence from multiple sources, synthesizes an answer, critiques the result, and returns a citation-grounded response.
+
+Every design decision follows four constraints:
+
+1. The coordinator is deterministic code.
+2. Agents communicate only through typed shared state.
+3. Termination is declared before retrieval begins.
+4. Honest incompleteness beats confident hallucination.
+
+---
+
+## The Problem
+
+I repeatedly encountered the same failure mode while using research assistants.
+
+The answer looked correct.
+
+The tone sounded authoritative.
+
+The citations either did not exist or did not support the claims being made.
+
+The model's confidence remained constant while my confidence in the answer decreased every time I checked a source.
+
+The problem was not generating text. Modern models are already good at that.
+
+The problem was producing answers that were traceable, inspectable, and willing to admit uncertainty.
+
+SPECTER was built to investigate whether a structured multi-agent architecture could improve those properties without relying on increasingly elaborate prompts.
+
+---
+
+## System Overview
+
+SPECTER consists of four specialized agents and a deterministic coordinator.
+
+### Planner
+
+Creates an execution plan from the user's question.
+
+Outputs:
+
+- Sub-questions
+- Evidence requirements
+- Retrieval strategy
+- Explicit termination criteria
+
+The planner runs once at the beginning of the workflow.
+
+### Retriever
+
+Collects evidence from typed sources:
+
+- Web
+- Vector databases
+- Local documents
+- Code repositories
+
+Queries are always derived from the original sub-question to prevent retrieval drift.
+
+### Synthesizer
+
+Produces evidence-grounded drafts.
+
+Every statement must be supported by retrieved evidence. Unsupported claims are marked as uncertain rather than asserted.
+
+### Critic
+
+Reviews drafts against a fixed checklist:
+
+- Citation grounding
+- Contradictions
+- Missing evidence
+- Hedging accuracy
+
+The critic cannot modify the answer directly. It can only raise issues that trigger additional retrieval or appear as unresolved gaps.
+
+### Coordinator
+
+The coordinator is not an LLM.
+
+It is a deterministic Python state machine responsible for routing, validation, retries, budgets, and termination.
+
+This is the most important component in the system.
+
+---
+
+## Core Architectural Decision
+
+SPECTER uses a blackboard architecture.
+
+Agents never communicate directly.
+
+Instead, they read and write to a shared typed ledger that contains:
+
+- Query state
+- Plans
+- Evidence
+- Drafts
+- Critiques
+- Budgets
+- Termination flags
+
+The ledger serves as the single source of truth for every run.
+
+A run can be paused, resumed, replayed, inspected, and audited because every state transition is recorded explicitly.
+
+---
+
+## Current Status
+
+SPECTER is currently a design and architecture project.
+
+The architecture has been specified in detail and the implementation roadmap has been defined, but the production system has not yet been completed.
+
+The goal of the project is not simply to build another agent framework.
+
+The goal is to understand which parts of multi-agent systems actually contribute to reliability and which parts merely increase complexity.
